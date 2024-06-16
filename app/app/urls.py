@@ -21,4 +21,4 @@ urlpatterns = [
 ]
 
 
-linttest = 1
+linttest =$1
