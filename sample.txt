@@ -1,0 +1,57 @@
+"""
+Django command to wait for the database to be available
+"""
+import time
+from psycopg2 import OperationalError as Psycopg2Error
+from django.db.utils import OperationalError
+from django.core.management.base import BaseCommand
+
+
+class Command(BaseCommand):
+    """Django command to wait for db"""
+
+    def handle(self, *args, **options):
+        """Entry point for commands"""
+        self.stdout.write('Waiting for database...')
+        db_up = False
+        while not db_up:
+            try:
+                self.check(databases=['default'])
+                db_up = True
+            except (Psycopg2Error, OperationalError):
+                self.stdout.write('Database unavailable. Waiting 1 sec...')
+                time.sleep(1)
+        self.stdout.write(self.style.SUCCESS('Database available'))
+
+wait_for_db.py above
+
+"""
+Test custom Django management commands
+"""
+from unittest.mock import patch
+from psycopg2 import OperationalError as Psycopg2Error
+from django.core.management import call_command
+from django.db.utils import OperationalError
+from django.test import SimpleTestCase
+
+
+@patch('core.management.commands.wait_for_db.Command.check')
+class CommandTests(SimpleTestCase):
+    """Test Commands"""
+
+    def test_wait_for_db_ready(self, patched_check):
+        """Test waiting for database if database is ready"""
+        patched_check.return_value = True
+        call_command('wait_for_db')
+        patched_check.assert_called_once_with(databases=["default"])
+
+    @patch('time.sleep')
+    def test_wait_for_db_delay(self, patched_sleep, patched_check):
+        """Test Waiting for db when getting OperationalError"""
+        patched_check.side_effect = [
+            Psycopg2Error] * 2 + [OperationalError] * 3 + [True]
+        call_command('wait_for_db')
+        self.assertEqual(patched_check.call_count, 6)
+        patched_check.assert_called_with(databases=['default'])
+
+test_commands.py above
