@@ -34,6 +34,7 @@ def create_recipe(user, **params):
     }
     defaults.update(params)
     recipe = Recipe.objects.create(user=user, **defaults)
+    return recipe
 
 
 def create_user(**params):
@@ -182,9 +183,10 @@ class PrivateRecipeAPITests(TestCase):
 
     def test_delete_other_users_recipe_error(self):
         """Test trying to delete another users recipe gives error."""
-        new_user = create_user(emial='user2@example.com')
+        new_user = create_user(email='user2@example.com', password='test123')
         recipe = create_recipe(user=new_user)
+        print(recipe, 'ehll')
         url = detail_url(recipe.id)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertTrue(Recipe.objects.filter(id=recipe.id().exists()))
+        self.assertTrue(Recipe.objects.filter(id=recipe.id).exists())
