@@ -185,7 +185,6 @@ class PrivateRecipeAPITests(TestCase):
         """Test trying to delete another users recipe gives error."""
         new_user = create_user(email='user2@example.com', password='test123')
         recipe = create_recipe(user=new_user)
-        print(recipe, 'ehll')
         url = detail_url(recipe.id)
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
@@ -356,6 +355,7 @@ class PrivateRecipeAPITests(TestCase):
 
     def test_clear_recipe_ingredients(self):
         """Test clearing a recipe ingredient."""
+
         ingredient = Ingredient.objects.create(user=self.user, name='Garlic')
 
         recipe = create_recipe(user=self.user)
